@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <!-- 模板 -->
+  <div id=app>{{message}}</div>
+  <!-- 引入 vue -->
+  <script src="./vue.js"></script>
+  <script>
+    let vm = new Vue({
+      el: '#app',
+      // 1，data 是对象
+      data: {
+        message: 'Hello Vue'
+      }
+      // 2，data 是函数，返回一个对象
+      // data() {
+      //   return { message: 'Hello Vue' }
+      // }
+    });
+  </script>
+</body>
+</html>
