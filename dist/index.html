@@ -28,8 +28,10 @@
       }
     });
 
-    console.log(vm)
-    console.log(vm.message)
+    // 将属性 message 由普通值，变更为对象类型
+    vm.message = { a: 100 }
+    // 对新增对象属性进行修改
+    vm.message.a = 200;
   </script>
 </body>
 </html>

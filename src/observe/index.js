@@ -61,7 +61,10 @@ function defineReactive(obj, key, value) {
             return value;
         },
         set(newValue) {
+            // console.log("修改了被观测属性 key = " + key + ", newValue = " + JSON.stringify(newValue));
             if (newValue === value) return;
+            // 当值被修改时，通过 observe 实现对新值得深层观测，此时，新增对象将被观测
+            observe(newValue);
             value = newValue;
         }
     })
