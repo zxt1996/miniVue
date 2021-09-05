@@ -62,10 +62,24 @@
         // 分别处理 value 为数组和对象两种情况
         if (isArray(value)) {
           value.__proto__ = arrayMethods; //更改数组的原型方法
+
+          this.observeArray(value); // 对数组数据类型进行深层观测
         } else {
           // 如果 value 是对象，遍历对象中的属性，使用 object.defineProperty 重新定义
           this.walk(value); // 循环对象属性
         }
+      }
+      /**
+      * 遍历数组，对数组中的对象进行递归观测
+      *  1）[[]] 数组套数组
+      *  2）[{}] 数组套对象
+      * @param {*} data 
+      */
+
+
+      observeArray(data) {
+        // observe 方法内，如果是对象类型，继续 new Observer 进行递归处理
+        data.forEach(item => observe(item));
       } // 循环 data 对象，使用 Object.keys 不循环原型方法
 
 
