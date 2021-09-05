@@ -20,9 +20,7 @@
     //   }
     //   2，data 是函数，返回一个对象
       data() {
-        console.log("打印 data函数执行时，this的指向")
-        console.log(this)
-        return { message: 'Hello Vue' }
+        return { message: 'Hello Vue', obj: { key: "val" } }
       }
     });
   </script>

@@ -35,6 +35,9 @@ class Observer {
  * @param {*} value 给对象定义的属性值
  */
 function defineReactive(obj, key, value) {
+    // 递归实现深层观测
+    observe(value);
+
     Object.defineProperty(obj, key, {
         get() {
             return value;
