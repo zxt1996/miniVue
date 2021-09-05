@@ -15,13 +15,15 @@
     let vm = new Vue({
       el: '#app',
       // 1，data 是对象
-      data: {
-        message: 'Hello Vue'
+    //   data: {
+    //     message: 'Hello Vue'
+    //   }
+    //   2，data 是函数，返回一个对象
+      data() {
+        console.log("打印 data函数执行时，this的指向")
+        console.log(this)
+        return { message: 'Hello Vue' }
       }
-      // 2，data 是函数，返回一个对象
-      // data() {
-      //   return { message: 'Hello Vue' }
-      // }
     });
   </script>
 </body>
