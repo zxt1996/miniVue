@@ -21,6 +21,31 @@
     function isObject(val) {
       return typeof val == 'object' && val !== null;
     }
+    /**
+     * 判断是否是数组
+     * @param {*} val 
+     * @returns 
+     */
+
+    function isArray(val) {
+      return Array.isArray(val);
+    }
+
+    /* 出于对性能的考虑，Vue 没有对数组类型的数组使用 Object.defineProperty 进行递归劫持，
+    而是通过对能够导致原数组变化的 7 个方法进行拦截和重写实现了数据劫持 */
+    // 拿到数组的原型方法
+    let oldArrayPrototype = Array.prototype; // 原型继承，将原型链向后移动 arrayMethods.__proto__ == oldArrayPrototype
+    // Object.create()方法创建一个新对象，使用现有的对象来提供新创建的对象的__proto__
+
+    let arrayMethods = Object.create(oldArrayPrototype); // 重写能够导致原数组变化的七个方法
+
+    let methods = ['push', 'pop', 'shift', 'unshift', 'reverse', 'sort', 'splice']; // 在数组自身上进行方法重写，对链上的同名方法进行拦截
+
+    methods.forEach(method => {
+      arrayMethods[method] = function () {
+        console.log('数组的方法进行重写 method = ' + method);
+      };
+    });
 
     function observe(value) {
       // 如果 value 不是对象，就不需要观测，直接 return
@@ -34,8 +59,13 @@
 
     class Observer {
       constructor(value) {
-        // 如果 value 是对象，遍历对象中的属性，使用 object.defineProperty 重新定义
-        this.walk(value); // 循环对象属性
+        // 分别处理 value 为数组和对象两种情况
+        if (isArray(value)) {
+          value.__proto__ = arrayMethods; //更改数组的原型方法
+        } else {
+          // 如果 value 是对象，遍历对象中的属性，使用 object.defineProperty 重新定义
+          this.walk(value); // 循环对象属性
+        }
       } // 循环 data 对象，使用 Object.keys 不循环原型方法
 
 
@@ -58,6 +88,8 @@
 
 
     function defineReactive(obj, key, value) {
+      // 递归实现深层观测
+      observe(value);
       Object.defineProperty(obj, key, {
         get() {
           return value;
@@ -93,10 +125,10 @@
       // data 执行时，绑定 this 为 vm
 
       data = isFunction(data) ? data.call(vm) : data;
-      console.log("进入 state.js - initData，数据初始化操作", data);
       observe(data); // 使用 observe 实现 data 数据的响应式
 
       console.log(data);
+      data.arr.push(22);
     }
 
     function initMixin(Vue) {

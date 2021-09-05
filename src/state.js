@@ -25,9 +25,8 @@ function initData(vm) {
     // data 执行时，绑定 this 为 vm
     data = isFunction(data) ? data.call(vm) : data;
 
-    console.log("进入 state.js - initData，数据初始化操作", data);
-
     observe(data); // 使用 observe 实现 data 数据的响应式
 
     console.log(data);
+    data.arr.push(22);
 }
