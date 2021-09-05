@@ -126,9 +126,34 @@
 
       data = isFunction(data) ? data.call(vm) : data;
       observe(data); // 使用 observe 实现 data 数据的响应式
+      // 为了让外部的 vm 实例能够拿到观测后的 data，将处理后的 data 直接挂载到 vm 上
 
-      console.log(data);
-      data.arr.push(22);
+      vm._data = data; // 当 vm.message 在 vm 实例上取值时，将它代理到 vm._data 上去取
+
+      for (let key in data) {
+        Proxy(vm, key, '_data');
+      }
+    }
+    /**
+     * 代理方法
+     *  当取 vm.key 时，将它代理到 vm._data上去取
+     * @param {*} vm        vm 实例
+     * @param {*} key       属性名
+     * @param {*} source    代理目标，这里是vm._data
+     */
+
+
+    function Proxy(vm, key, source) {
+      Object.defineProperty(vm, key, {
+        get() {
+          return vm[source][key];
+        },
+
+        set(newValue) {
+          vm[source][key] = newValue;
+        }
+
+      });
     }
 
     function initMixin(Vue) {
