@@ -42,8 +42,29 @@
     let methods = ['push', 'pop', 'shift', 'unshift', 'reverse', 'sort', 'splice']; // 在数组自身上进行方法重写，对链上的同名方法进行拦截
 
     methods.forEach(method => {
-      arrayMethods[method] = function () {
-        console.log('数组的方法进行重写 method = ' + method);
+      arrayMethods[method] = function (...args) {
+        console.log('数组的方法进行重写 method = ' + method); // 调用数组原生方法逻辑（绑定到当前调用上下文）
+
+        oldArrayPrototype[method].call(this, ...args); // 数组新增的属性如果是属性，要继续观测
+        // 哪些方法有增加数组的功能：splice push unshift
+
+        let inserted = null;
+
+        switch (method) {
+          case 'splice':
+            inserted = args.slice(2);
+
+          case 'push':
+          case 'unshift':
+            inserted = args;
+            break;
+        }
+
+        let ob = this.__ob__; // observeArray：内部遍历 inserte 数组，调用 observe 方法，是对象就 new Observer，继续深层观察
+
+        if (inserted) {
+          ob.observeArray(inserted); // inserted 有值就是数组
+        }
       };
     });
 
@@ -59,7 +80,16 @@
 
     class Observer {
       constructor(value) {
-        // 分别处理 value 为数组和对象两种情况
+        // value：为数组或对象添加自定义属性 __ob__ = this
+        // this：为当前 Observer 类的实例，实例上就有 observeArray 方法
+        // value.__ob__ = this;  // 可被遍历枚举，会造成死循环
+        // 定义 __ob__ 属性为不可被枚举，防止对象在进入 walk 都继续 defineProperty,造成死循环
+        Object.defineProperty(value, '__ob__', {
+          value: this,
+          enumerable: false // 不可被枚举
+
+        }); // 分别处理 value 为数组和对象两种情况
+
         if (isArray(value)) {
           value.__proto__ = arrayMethods; //更改数组的原型方法
 

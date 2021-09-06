@@ -14,6 +14,15 @@ export function observe(value) {
 
 class Observer {
     constructor(value) {
+        // value：为数组或对象添加自定义属性 __ob__ = this
+        // this：为当前 Observer 类的实例，实例上就有 observeArray 方法
+        // value.__ob__ = this;  // 可被遍历枚举，会造成死循环
+        // 定义 __ob__ 属性为不可被枚举，防止对象在进入 walk 都继续 defineProperty,造成死循环
+        Object.defineProperty(value, '__ob__', {
+            value: this,
+            enumerable: false // 不可被枚举
+        })
+
         // 分别处理 value 为数组和对象两种情况
         if (isArray(value)) {
             value.__proto__ = arrayMethods; //更改数组的原型方法
