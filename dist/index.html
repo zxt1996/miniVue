@@ -8,7 +8,7 @@
 </head>
 <body>
   <!-- 模板 -->
-  <div id=app>{{message}}</div>
+  <div id="app" a='1' b=2 > <p>{{message}} <span>Hello Vue</span></p></div>
   <!-- 引入 vue -->
   <script src="./vue.js"></script>
   <script>
@@ -25,9 +25,8 @@
             obj: { key: "val" },
             arr: [1]
         }
-      },
-      template:'<div id="app">{{message}}</div>'
-    }).$mount('#app');;
+      }
+    }).$mount('#app');
 
     // 将属性 message 由普通值，变更为对象类型
     // vm.message = { a: 100 }

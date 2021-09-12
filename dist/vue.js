@@ -203,7 +203,6 @@
       });
     }
 
-    // 将模板编译为 ast 语法树
     // 标签名 a-aaa
     const ncname = `[a-zA-Z_][\\-\\.0-9_a-zA-Z]*`; // 命名空间标签 aa:aa-xxx
 
@@ -218,29 +217,75 @@
     const attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/; // 匹配标签结束的 >
 
     const startTagClose = /^\s*(\/?)>/; // 匹配 {{ }} 表达式
-    function compileToFunction(template) {
-      // 1. 将模板变成 AST 语法树
-      let ast = parserHTML(template); // 2. 使用 AST 生成 render 函数
-
-      generate(ast);
-    } // 开始标签
-
-    function start(tagName, attrs) {
-      console.log("start", tagName, attrs);
-    } // 结束标签
-
-
-    function end(tagName) {
-      console.log("end", tagName);
-    } // 文本标签
-
     function parserHTML(html) {
-      // console.log("parserHTML-template: " + template);
+      console.log("***** 进入 parserHTML：将模板编译成 AST 语法树 *****");
+      let stack = [];
+      let root = null; // 构建父子关系
 
+      function createASTElement(tag, attrs, parent) {
+        return {
+          tag,
+          // 标签名
+          type: 1,
+          // 元素
+          children: [],
+          // 儿子
+          parent,
+          // 父亲
+          attrs // 属性
+
+        };
+      } // 处理开始标签,如:[div,p]
+
+
+      function start(tag, attrs) {
+        // 遇到开始标签，就取栈中最后一个，作为父节点
+        let parent = stack[stack.length - 1];
+        let element = createASTElement(tag, attrs, parent); // 还没有根节点时，作为根节点
+
+        if (root == null) {
+          root = element;
+        }
+
+        if (parent) {
+          element.parent = parent; // 为当前节点设置父节点
+
+          parent.children.push(element); // 同时，当前节点称为父节点的子节点
+        }
+
+        stack.push(element);
+      } // 结束标签
+
+
+      function end(tagName) {
+        // 如果是结束标签，就从栈中抛出
+        let endTag = stack.pop(); // check：抛出的结果标签名与当前结束标签名是否一致
+
+        if (endTag.tag != tagName) {
+          console.log("标签出错");
+        }
+      } // 文本标签
+
+
+      function text(chars) {
+        // 文本直接放到前一个中，注意：文本可能有空白字符
+        let parent = stack[stack.length - 1];
+        chars = chars.replace(/\s/g, ""); // 将空格替换为空，即删除空格
+
+        if (chars) {
+          parent.children.push({
+            type: 2,
+            // 文本类型为 2
+            text: chars
+          });
+        }
+      }
       /**
       * 截取字符串
       * @param {*} len 截取长度
       */
+
+
       function advance(len) {
         html = html.substring(len);
       }
@@ -251,6 +296,14 @@
 
       function parseStartTag() {
         // 匹配开始标签，开始标签名为索引 1
+        // console.log('<aa:aa-xxx'.match(startTagOpen))
+        // [
+        // '<aa:aa-xxx',
+        // 'aa:aa-xxx',			// 开始标签的标签名
+        // index: 0,
+        // input: '<aa:aa-xxx',
+        // groups: undefined
+        // ]
         const start = html.match(startTagOpen);
 
         if (start) {
@@ -310,19 +363,44 @@
           } // 没有匹配到开始标签，此时有可能为结束标签 </div>，继续处理结束标签
 
 
-          let endTagMatch;
+          let endTagMatch; // console.log('</aa:aa-xxxdsadsa>'.match(endTag))
+          // [
+          // '</aa:aa-xxxdsadsa>',
+          // 'aa:aa-xxxdsadsa', 		// 结束标签的标签名
+          // index: 0,
+          // input: '</aa:aa-xxxdsadsa>',
+          // groups: undefined
+          // ]
 
-          if (endTagMatch == html.match(endTag)) {
+          if (endTagMatch = html.match(endTag)) {
             // 匹配到结束标签
             // 匹配到开始标签，调用start方法，传递标签名和属性
             end(endTagMatch[1]);
             advance(endTagMatch[0].length);
             continue; // 如果是结束标签，无需执行下面逻辑，继续下次 while 解析后续内容
           }
-        } else {
-          console.log("是文本");
+        }
+
+        if (index > 0) {
+          // 文本
+          // 将文本取出来并发射出去，再从 html 中拿掉
+          let chars = html.substring(0, index); // hello</div>
+
+          text(chars);
+          advance(chars.length);
         }
       }
+
+      return root;
+    }
+
+    function compileToFunction(template) {
+      // 1. 将模板变成 AST 语法树
+      let ast = parserHTML(template);
+      console.log("解析 HTML 返回 ast 语法树====>");
+      console.log(ast); // 2. 使用 AST 生成 render 函数
+
+      generate(ast);
     }
 
     function generate(ast) {
